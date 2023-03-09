@@ -1,0 +1,15 @@
+logging:
+  config: classpath:logback-spring.xml
+
+management:
+  tracing:
+    enabled: true
+    propagation:
+      type: b3
+    sampling:
+      probability: 1.0
+    baggage:
+      correlation:
+        enabled: true
+        fields: orderId, customerId
+      remote-fields: orderId, customerId
