@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.contino</groupId>
 	<artifactId>pizza-shop-transformer</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.3</version>
 	<properties>
 		<java.version>17</java.version>
 		<logback.version>1.3.0</logback.version>
@@ -101,10 +101,15 @@
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>3.2.1</version>
+				<configuration>
+					<to>
+						<image>${project.artifactId}:latest</image>
+					</to>
+				</configuration>
 				<executions>
 					<execution>
 						<id>build-docker-container</id>
-						<phase>package</phase>
+						<phase>install</phase>
 						<goals>
 							<goal>dockerBuild</goal>
 						</goals>

@@ -19,7 +19,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://host.docker.internal:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -30,36 +30,67 @@ services:
     ports:
       - "9411:9411"
 
-#
-#  pizza-shop-web-receiver:
-#    image: pizza-shop-web-receiver:0.0.1
-#    container_name: pizza-shop-web-receiver
-#    depends_on:
-#      - broker
-#    ports:
-#      - "10010:10010"
-#    environment:
-#      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-#
-#  pizza-shop-transformer:
-#    image: pizza-shop-transformer:0.0.1
-#    container_name: pizza-shop-transformer
-#    depends_on:
-#      - broker
-#    ports:
-#      - "10011:10011"
-#    environment:
-#      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-#
-#  pizza-shop-repository:
-#    image: pizza-shop-repository:0.0.1
-#    container_name: pizza-shop-repository
-#    depends_on:
-#      - broker
-#    ports:
-#      - "10012:10012"
-#    environment:
-#      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  loki:
+    container_name: loki
+    image: grafana/loki:2.7.4
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:2.7.4
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+
+  pizza-shop-web-receiver:
+    image: pizza-shop-web-receiver:latest
+    container_name: pizza-shop-web-receiver
+    depends_on:
+      - kafka
+    ports:
+      - "10010:10010"
+    environment:
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+
+  pizza-shop-transformer:
+    image: pizza-shop-transformer:latest
+    container_name: pizza-shop-transformer
+    depends_on:
+      - kafka
+    ports:
+      - "10011:10011"
+    environment:
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+
+  pizza-shop-repository:
+    image: pizza-shop-repository:latest
+    container_name: pizza-shop-repository
+    depends_on:
+      - kafka
+    ports:
+      - "10012:10012"
+    environment:
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
