@@ -23,6 +23,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   zipkin:
     image: openzipkin/zipkin
@@ -62,10 +67,16 @@ services:
     environment:
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    healthcheck:
+      test: "curl --fail --silent localhost:10010/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 10
     logging:
       driver: loki
       options:
         loki-url: "http://localhost:3100/loki/api/v1/push"
+
 
   pizza-shop-transformer:
     image: pizza-shop-transformer:latest
@@ -77,6 +88,11 @@ services:
     environment:
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    healthcheck:
+      test: "curl --fail --silent localhost:10011/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 10
     logging:
       driver: loki
       options:
@@ -92,6 +108,11 @@ services:
     environment:
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    healthcheck:
+      test: "curl --fail --silent localhost:10012/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 10
     logging:
       driver: loki
       options:
