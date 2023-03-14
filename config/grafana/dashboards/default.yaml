@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: Default
+    folder: Pizza Shop
+    type: file
+    options:
+      path:
+        /etc/grafana/provisioning/dashboards/pizza-shop.json

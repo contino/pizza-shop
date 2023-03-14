@@ -49,6 +49,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - ./config/grafana/:/etc/grafana/provisioning/
 
   pizza-shop-web-receiver:
     image: pizza-shop-web-receiver:latest
