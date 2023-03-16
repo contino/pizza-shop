@@ -42,7 +42,7 @@ public class Config {
     }
 
     @Bean
-    KafkaTracing kafkaStreamsTracing(Tracing tracing) {
+    KafkaTracing kafkaTracing(Tracing tracing) {
         return KafkaTracing.create(tracing);
     }
 

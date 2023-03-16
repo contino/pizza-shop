@@ -2,10 +2,12 @@ server:
   port: 10011
 
 spring:
+  main:
+    banner-mode: off
   application:
     name: '@project.artifactId@-@project.version@'
   kafka:
-    bootstrap-servers: host.docker.internal:9092
+    bootstrap-servers: localhost:9092
   config:
     import: classpath:application-tracing.yaml
 
@@ -19,14 +21,7 @@ service:
 
 logging:
   level:
-    org:
-      apache:
-        kafka: warn
-        kafka.clients: error
     root: warn
     io:
       contino: info
-logstash:
-  host: 127.0.0.1
-  port: 50000
 

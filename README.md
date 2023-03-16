@@ -1,6 +1,6 @@
 # Pizza Shop Demo Application
 
-Pizza shop demo application to demonstrate the use of Micrometer and Brave for tracing and log correlation in Spring Boot 3.
+Pizza shop demo application to demonstrate the use of Micrometer and Brave for tracing and log correlation in Spring Boot 3 Kafka services.
 
 ## Run the stack
 

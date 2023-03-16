@@ -26,5 +26,4 @@ public class TracingConfig {
                 .add(CorrelationScopeConfig.SingleCorrelationField.newBuilder(customerId).flushOnUpdate().build())
                 .build();
     }
-
 }

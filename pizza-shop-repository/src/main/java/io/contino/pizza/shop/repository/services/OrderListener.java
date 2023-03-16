@@ -10,15 +10,14 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class Listener {
+public class OrderListener {
 
     private final OrderRepository orderRepository;
 
     @KafkaListener(id = "${service.topic.listener-id}", topics = "${service.topic.topic-name}")
-    public void listen(Order order) {
+    public void insertOrder(Order order) {
         orderRepository.insertOrder(order);
         log.info("order stored");
     }
-
 }
 

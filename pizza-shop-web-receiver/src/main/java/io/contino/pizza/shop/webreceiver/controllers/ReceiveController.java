@@ -42,5 +42,4 @@ public class ReceiveController {
         sender.send(order);
         log.info("order received");
     }
-
 }

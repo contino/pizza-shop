@@ -33,8 +33,8 @@ public class Config {
     }
 
     @Bean
-    KafkaTemplate<String, Order> kafkaTemplate() {
-        KafkaTemplate<String, Order> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+    KafkaTemplate<String, Order> kafkaTemplate(ProducerFactory<String, Order> producerFactory) {
+        KafkaTemplate<String, Order> kafkaTemplate = new KafkaTemplate<>(producerFactory);
         kafkaTemplate.setObservationEnabled(true);
         return kafkaTemplate;
     }

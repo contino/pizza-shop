@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.contino</groupId>
 	<artifactId>pizza-shop-repository</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.1</version>
 	<properties>
 		<java.version>17</java.version>
 	</properties>

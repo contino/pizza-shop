@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.contino</groupId>
 	<artifactId>pizza-shop-transformer</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.1</version>
 	<properties>
 		<java.version>17</java.version>
 		<logback.version>1.3.0</logback.version>
