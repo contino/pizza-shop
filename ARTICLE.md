@@ -4,7 +4,7 @@ In recent years, microservices architecture has gained widespread popularity as 
 
 ## A Quick Word About Spring Cloud Sleuth
 
-Until recently, Spring Boot tracing functionality was provided by the Spring Cloud Sleuth project (https://github.com/spring-cloud/spring-cloud-sleuth). As of Spring Boot version 3, this functionality has been moved to the Micrometer Tracing https://micrometer.io/docs/tracing project to consolidate the work.
+Until recently, Spring Boot tracing functionality was provided by the Spring Cloud Sleuth project (https://github.com/spring-cloud/spring-cloud-sleuth). As of Spring Boot 3, this functionality has been moved to the Micrometer Tracing https://micrometer.io/docs/tracing project to consolidate the work.
 
 ## Micrometer
 
@@ -17,7 +17,7 @@ Brave (https://github.com/openzipkin/brave) is a distributed tracing instrumenta
 
 ## The Sample Application
 
-The sample application for this article is available on GitHub (https://github.com/contino/pizza-shop). The application is broken into 3 distinct services, there is a web-reciever that accepts pizza orders as JSON payloads and places them onto a Kafka topic, a transformer that uses Kafka Streams (https://docs.confluent.io/platform/current/streams/index.html) to augment the order information with the customer's address and a repository which places the order in a local memory store. 
+The sample application for this article is available on GitHub (https://github.com/contino/pizza-shop). The application is broken into 3 distinct services, there is a web-reciever that accepts pizza orders as JSON payloads and places them onto a Kafka topic, a transformer that uses Kafka Streams (https://docs.confluent.io/platform/current/streams/index.html) to augment the order information with the customer's address and a repository application which places orders into a local memory store. 
 
 To enable tracing using Micrometer and Brave, the applications include the following dependencies
 
@@ -62,7 +62,7 @@ public class TracingConfig {
 }
 ```
 
-This class is included in the tracing library which is then imported into each service as follows
+This class is included in the tracing library and is imported into each service as follows
 
 ```java
 @SpringBootApplication
@@ -95,7 +95,7 @@ management:
       remote-fields: orderId, customerId
 ```
 
-The above configuration enables tracing, sets the propagation type to b3 (Zipkin format), informs the system to sample all requests, and sets the `orderId` and `customerId` fields as both local and remote (meaning they will be transported between services as header information).
+The above configuration enables tracing, sets the propagation type to b3 (Zipkin format), informs the system to sample all requests, and sets the `orderId` and `customerId` fields as both local and remote (meaning they will be transported between services as header metadata).
 
 The common logback-spring.xml configuration file is as follows 
 
@@ -186,9 +186,9 @@ KafkaStreams kafkaStreams(TopologyService topologyService, KafkaStreamsTracing k
 }
 ```
 
-The configuration above instantiates an instance of the KafkaStreamsTracing class which we can use to create a wrapped instance of the KafkaStreams class. This wrapped instance will automatically generate Kafka `poll` and `send` spans to Zipkin. 
+The configuration above instantiates an instance of the KafkaStreamsTracing class which we can use to create a wrapped instance of the KafkaStreams class. This wrapped instance automatically generates Kafka `poll` and `send` spans and send them as part of the trace context to the Zipkin server. 
 
-To enable log correlation on Kafka Streams Transformation and Processor classes the current solution is unfortunately a little invasive. Currently, it is necessary to wrap each transformation or process operation in a call to KafkaStreamsTracing as below. 
+To enable log correlation on Kafka Streams Transformation and Processor implementations the current solution is unfortunately a little invasive. Currently, it is necessary to wrap each transformation or process operation in a call to KafkaStreamsTracing as below. 
 
 ```java
 public Topology topology() {
@@ -202,7 +202,7 @@ public Topology topology() {
 }
 ```
 
-Without the wrapping operation, any log messages written by the Transformer or Processor class will not include the correlation information (traceId, customerId, etc...). Further information on the above can be found here https://github.com/openzipkin/brave/blob/master/instrumentation/kafka-streams/README.md. This is further complicated by the fact that the current Kstream's "process" and "transform" methods are being deprecated in favor of a more condensed API (see https://cwiki.apache.org/confluence/display/KAFKA/KIP-820%3A+Extend+KStream+process+with+new+Processor+API). A request for an update to Brave's KafkaStreamsTracing class has been raised (see https://github.com/openzipkin/brave/issues/1365).
+Without the wrapping operation, any log messages written by the Transformer or Processor instance will not include the correlation information (traceId, customerId, etc...). Further information on the above can be found here https://github.com/openzipkin/brave/blob/master/instrumentation/kafka-streams/README.md. This is further complicated by the fact that the current Kstream's `process` and `transform` methods are being deprecated in favor of a more condensed API (see https://cwiki.apache.org/confluence/display/KAFKA/KIP-820%3A+Extend+KStream+process+with+new+Processor+API). A request for an update to Brave's KafkaStreamsTracing class has been raised (see https://github.com/openzipkin/brave/issues/1365).
 
 The final service in the application flow (which also includes the aforementioned import of the `TracingConfig` class and `application-tracing.yaml`) is relatively straightforward to configure. The service makes use of Spring's `@KafkaListener` annotation to trigger an operation to save the incoming order to a repository.
 
@@ -240,7 +240,7 @@ KafkaTracing kafkaTracing(Tracing tracing) {
 
 ## Running The Application Stack
 
-A docker-compose file that includes Kafka, Zookeeper, Zipkin, Grafana, and the applications themselves can be found in the root of the repository. To launch the stack simply run the following command in the root directory.
+A docker-compose file that includes Kafka, Zookeeper, Zipkin, Grafana, and the applications themselves, can be found in the root of the repository. To launch the stack simply run the following command in the root directory.
 
 ```bash
 make up
@@ -259,7 +259,7 @@ To view, the logs navigate to http://localhost:3000/dashboards, log in with the 
 The logs can be filtered by clicking "Logs" / "Edit" at the top of the page and changing the query to that below (remember to change the traceId to one already provided in the logs).
 
 ```sql
-{compose_project="pizza-shop"} | json | traceId="64130994af91126bdeef108f2c2fea94"
+{compose_project="pizza-shop"} | json | traceId="641355c5ff56aff737d0a8b5e775b626"
 ```
 ![zipkin-home](images/grafana-logs-edit.png)
 
@@ -267,6 +267,13 @@ To view traces in Zipkin navigate to http://localhost:9411/zipkin and enter one 
 
 ![zipkin-trace](images/zipkin-trace.png)
 
-To view the Kafka headers navigate to http://localhost:9093/ui/clusters/local/all-topics/inbound-messages/messages and click on one of the messages shown in the list. Click the "Headers" tab to view the "b3", "orderid" and "customerid" header information that has been attached to the message by the framework.
+To view the Kafka headers navigate to http://localhost:9093/ui/clusters/local/all-topics/inbound-messages/messages and click on one of the messages shown in the list. Click the "Headers" tab to view the "b3", "orderid" and "customerid" header information that has been automatically attached to the message by the framework.
 
 ![kafka-headers](images/kafka-headers.png)
+
+## Wrapping up
+
+In conclusion, distributed tracing is an essential tool for organizations implementing microservices architecture. The numerous benefits of distributed tracing include improved visibility into the system, faster problem resolution, and better end-to-end performance analysis. Distributed tracing enables developers and operations teams to track requests as they move across multiple services, providing insight into the behaviour and performance of individual components and the system as a whole.
+
+The abstraction layers provided by Spring Boot, Micrometer and Brave make the implementation of distributed tracing functionality relatively simple and enables consistency whether the services are communicating via HTTP or a Messaging system such as Kafka. 
+
