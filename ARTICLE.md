@@ -1,10 +1,10 @@
-# Distributed Logging and Tracing in Spring Boot 3 and Kafka
+# Distributed Logging and Tracing with Spring Boot 3 and Kafka
 
 In recent years, microservices architecture has gained widespread popularity as a way to develop complex software systems. The concept of breaking down large monolithic applications into smaller, independently deployable services has allowed developers to increase agility by decoupling feature delivery. However, with the benefits of microservices come many challenges, especially when it comes to tracing the flow of data and requests between services. Distributed tracing is a technique that helps developers understand the behavior of complex systems by providing visibility into the path of a request as it moves through various services. This article will focus on distributed tracing in Kafka microservices. Kafka has become a popular choice for building distributed systems due to its ability to handle large volumes of data and its support for real-time data processing. What follows is a detailed example of how to wire Micrometer and Brave in Spring Boot 3 Kafka applications to enable distributed tracing and log correlation.
 
 ## A Quick Word About Spring Cloud Sleuth
 
-Until recently, Spring Boot tracing functionality was provided by the Spring Cloud Sleuth project (https://github.com/spring-cloud/spring-cloud-sleuth). As of Spring Boot 3, this functionality has been moved to the Micrometer Tracing https://micrometer.io/docs/tracing project to consolidate the work.
+Until recently, Spring Boot tracing functionality was provided by the Spring Cloud Sleuth project (https://github.com/spring-cloud/spring-cloud-sleuth). As of Spring Boot 3, this functionality has been moved to the Micrometer Tracing (https://micrometer.io/docs/tracing) project to consolidate the work.
 
 ## Micrometer
 
@@ -186,7 +186,7 @@ KafkaStreams kafkaStreams(TopologyService topologyService, KafkaStreamsTracing k
 }
 ```
 
-The configuration above instantiates an instance of the KafkaStreamsTracing class which we can use to create a wrapped instance of the KafkaStreams class. This wrapped instance automatically generates Kafka `poll` and `send` spans and send them as part of the trace context to the Zipkin server. 
+The configuration above instantiates an instance of the KafkaStreamsTracing class which we can use to create a wrapped instance of the KafkaStreams class. This wrapped instance automatically generates Kafka `poll` and `send` spans and transports them as part of the trace context to the Zipkin server. 
 
 To enable log correlation on Kafka Streams Transformation and Processor implementations the current solution is unfortunately a little invasive. Currently, it is necessary to wrap each transformation or process operation in a call to KafkaStreamsTracing as below. 
 
@@ -252,7 +252,7 @@ This will install the required Loki Docker plugin (to enable log aggregation in 
 make test
 ```
 
-To view, the logs navigate to http://localhost:3000/dashboards, log in with the credentials "admin" / "admin" and click on "Pizza Shop" / "Pizza Shop Service Logs". Once there you should see something similar to the image below.
+To view the logs, navigate to http://localhost:3000/dashboards, log in with the credentials "admin" / "admin" and click on "Pizza Shop" / "Pizza Shop Service Logs". Once there you should see something similar to the image below.
 
 ![zipkin-home](images/grafana-logs.png)
 
