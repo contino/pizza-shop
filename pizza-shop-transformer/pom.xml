@@ -57,6 +57,7 @@
 		<dependency>
 			<groupId>io.zipkin.brave</groupId>
 			<artifactId>brave-instrumentation-kafka-streams</artifactId>
+			<version>5.15.1</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
